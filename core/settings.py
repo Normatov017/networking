@@ -1,25 +1,18 @@
 import os
 from pathlib import Path
-import dj_database_url # Ma'lumotlar bazasi URL'ni tahlil qilish uchun
-
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
+import dj_database_url 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-# Productionda SECRET_KEY ni environment variable dan olamiz
+
 SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'django-insecure-zpaw7w=55ho1#z!t^bvu3+4_#op2h)ghmyf_x++&4yc3e+*8^t')
 
-# SECURITY WARNING: don't run with debug turned on in production!
-# Productionda DEBUG ni False ga o'zgartiramiz. Environment variable orqali boshqarish tavsiya etiladi.
+
 DEBUG = os.environ.get('DJANGO_DEBUG', 'True') == 'True'
 
-# Productionda serveringizning IP manzillari yoki domen nomlari
 ALLOWED_HOSTS = ['*']
-# Agar siz hostni o'rnatmoqchi bo'lmasangiz, shunday qilib qo'yishingiz mumkin:
-# ALLOWED_HOSTS = ['*'] # Qat'iy tavsiya etilmaydi! Faqat test uchun.
 
 
 # Application definition
@@ -70,14 +63,6 @@ TEMPLATES = [
 WSGI_APPLICATION = 'core.wsgi.application'
 
 
-# Database
-# https://docs.djangoproject.com/en/5.2/ref/settings/#databases
-
-# Ma'lumotlar bazasi sozlamalari. Environment variable orqali boshqarish
-# Bulut muhitida DATABASE_URL ko'pincha avtomatik ravishda o'rnatiladi (masalan, Heroku, Render)
-# Yoki o'zingiz belgilashingiz mumkin (masalan, 'postgres://user:password@host:port/dbname')
-
-    # Mahalliy rivojlanish uchun standart sozlamalar
 
 DATABASES = {
     "default": {
@@ -111,9 +96,8 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'Asia/Tashkent' # O'zbekiston uchun vaqt zonasi
-# USE_I18N = True # Default True
-# USE_L10N = True # Django 4.0 dan o'chirilgan, USE_TZ bilan birga ishlaydi
+TIME_ZONE = 'Asia/Tashkent' 
+
 USE_TZ = True
 
 
@@ -121,7 +105,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
 STATIC_URL = '/static/'
-STATIC_ROOT = BASE_DIR / 'staticfiles' # Joylashtirish uchun
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
@@ -130,10 +114,10 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
 JAZZMIN_SETTINGS = {
-    "site_title": "Ulgurji ERP/CRM/WMS",
+    "site_title": "Ulgurji ERP",
     "site_header": "Ulgurji Savdo",
     "site_brand": "Kompaniya Paneli",
-    "site_logo": "img/logo.png", # O'zingizning logotipingizga yo'l
+    "site_logo": "img/logo.png", 
     "login_logo": None,
     "login_logo_dark": None,
     "site_logo_classes": "img-circle",
@@ -143,7 +127,7 @@ JAZZMIN_SETTINGS = {
     "user_avatar": None,
     "topmenu_links": [
         {"name": "Bosh sahifa", "url": "home", "permissions": ["auth.view_user"]},
-        {"name": "Statistika", "url": "dashboard", "permissions": ["auth.view_user"]}, # 'dashboard' nomli URLga ishora qiladi
+        {"name": "Statistika", "url": "dashboard", "permissions": ["auth.view_user"]}, 
         {"model": "auth.User"},
         {"app": "products"},
         {"app": "customers"},
@@ -151,7 +135,7 @@ JAZZMIN_SETTINGS = {
         {"app": "warehouses"},
     ],
     "usermenu_links": [
-        {"name": "Veb-sayt", "url": "home"}, # Keyinchalik yaratamiz
+        {"name": "Veb-sayt", "url": "home"}, 
         {"model": "auth.User"}
     ],
     "show_sidebar": True,
