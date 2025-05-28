@@ -1,0 +1,199 @@
+{# jfdksjl/core/templates/dashboard.html #}
+{% extends 'base.html' %} {# base.html shablonini kengaytirish #}
+{% load static %} {# Agar statik fayllar kerak bo'lsa (CSS/JS) #}
+
+{% block title %}{{ title }}{% endblock %} {# Sahifa sarlavhasi #}
+
+{% block extra_head %}
+    {# Chart.js kutubxonasini CDN orqali qo'shamiz #}
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    {# Moment.js - Chart.js uchun vaqtni boshqarish kutubxonasi (agar kerak bo'lsa) #}
+    <script src="https://cdn.jsdelivr.net/npm/moment@2.29.1/moment.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-moment@1.0.0/dist/chartjs-adapter-moment.min.js"></script>
+{% endblock %}
+
+{% block content %}
+    <div class="container-fluid mt-4">
+        <h1 class="mb-4">{{ title }}</h1>
+
+        {# 1. Umumiy statistik kartalar #}
+        <div class="row">
+            <div class="col-md-3">
+                <div class="card text-white bg-primary mb-3">
+                    <div class="card-body">
+                        <h5 class="card-title">Jami Mahsulotlar</h5>
+                        <p class="card-text h2">{{ total_products }}</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-white bg-success mb-3">
+                    <div class="card-body">
+                        <h5 class="card-title">Jami Buyurtmalar</h5>
+                        <p class="card-text h2">{{ total_orders }}</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-white bg-info mb-3">
+                    <div class="card-body">
+                        <h5 class="card-title">Jami Mijozlar</h5>
+                        <p class="card-text h2">{{ total_customers }}</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-white bg-warning mb-3">
+                    <div class="card-body">
+                        <h5 class="card-title">Jami Omborlar</h5>
+                        <p class="card-text h2">{{ total_warehouses }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <hr class="my-4">
+
+        {# 2. Eng oxirgi buyurtmalar jadvali #}
+        <div class="row mt-4">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        Eng oxirgi 5 ta buyurtma
+                    </div>
+                    <div class="card-body">
+                        {% if latest_orders %}
+                            <ul class="list-group">
+                                {% for order in latest_orders %}
+                                    <li class="list-group-item">
+                                        <strong>Buyurtma #{{ order.id }}</strong> - Mijoz: {{ order.customer.name }} - Summa: {{ order.total_amount }} UZS - Sana: {{ order.order_date|date:"Y-m-d H:i" }}
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        {% else %}
+                            <p>Hozircha buyurtmalar mavjud emas.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            {# 3. Eng ko'p sotilgan mahsulotlar diagrammasi #}
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        Eng ko'p sotilgan mahsulotlar (miqdori bo'yicha)
+                    </div>
+                    <div class="card-body">
+                        <canvas id="topProductsChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <hr class="my-4">
+
+        {# 4. Kunlik savdo diagrammasi #}
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        Kunlik savdo dinamikasi (oxirgi 30 kun)
+                    </div>
+                    <div class="card-body">
+                        <canvas id="dailySalesChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {# JavaScript kodlari (sahifa yuklangandan so'ng ishga tushadi) #}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Kunlik savdo diagrammasini chizish
+            fetch('{% url "daily_sales_api" %}')
+                .then(response => response.json())
+                .then(data => {
+                    const ctx = document.getElementById('dailySalesChart').getContext('2d');
+                    new Chart(ctx, {
+                        type: 'line', // Chiziqli diagramma
+                        data: data,
+                        options: {
+                            responsive: true,
+                            plugins: {
+                                title: {
+                                    display: false,
+                                    text: 'Kunlik savdo dinamikasi'
+                                }
+                            },
+                            scales: {
+                                x: {
+                                    type: 'time', // Vaqt o'qi
+                                    time: {
+                                        unit: 'day', // Kunlik birlik
+                                        tooltipFormat: 'YYYY-MM-DD',
+                                        displayFormats: {
+                                            day: 'MMM DD'
+                                        }
+                                    },
+                                    title: {
+                                        display: true,
+                                        text: 'Sana'
+                                    }
+                                },
+                                y: {
+                                    beginAtZero: true,
+                                    title: {
+                                        display: true,
+                                        text: 'Savdo summasi'
+                                    }
+                                }
+                            }
+                        }
+                    });
+                })
+                .catch(error => console.error('Error fetching daily sales data:', error));
+
+
+            // Eng ko'p sotilgan mahsulotlar diagrammasini chizish
+            fetch('{% url "top_products_api" %}')
+                .then(response => response.json())
+                .then(data => {
+                    const ctx = document.getElementById('topProductsChart').getContext('2d');
+                    new Chart(ctx, {
+                        type: 'bar', // Ustunli diagramma
+                        data: data,
+                        options: {
+                            responsive: true,
+                            indexAxis: 'y', // Gorizontal ustunlar
+                            plugins: {
+                                title: {
+                                    display: false,
+                                    text: 'Eng ko\'p sotilgan mahsulotlar'
+                                },
+                                legend: {
+                                    display: false // Legendani yashirish
+                                }
+                            },
+                            scales: {
+                                x: {
+                                    beginAtZero: true,
+                                    title: {
+                                        display: true,
+                                        text: 'Sotilgan miqdor'
+                                    }
+                                },
+                                y: {
+                                    title: {
+                                        display: true,
+                                        text: 'Mahsulot nomi'
+                                    }
+                                }
+                            }
+                        }
+                    });
+                })
+                .catch(error => console.error('Error fetching top products data:', error));
+        });
+    </script>
+{% endblock %}

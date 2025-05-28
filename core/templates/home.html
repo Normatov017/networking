@@ -1,0 +1,51 @@
+{% extends 'base.html' %} {# Asosiy shablonni kengaytiramiz #}
+
+{% block title %}Bosh sahifa - Ulgurji ERP/CRM/WMS{% endblock %}
+
+{% block content %}
+<div class="p-5 mb-4 bg-light rounded-3">
+    <div class="container-fluid py-5 text-center">
+        <h1 class="display-5 fw-bold">Ulgurji Kompaniyasi Bulutli Tizimlarga Xush Kelibsiz!</h1>
+        <p class="col-md-8 mx-auto fs-4">Bizning zamonaviy ERP, CRM va WMS yechimlarimiz orqali biznesingizni yangi bosqichga olib chiqing.</p>
+        <hr class="my-4">
+        <p>Quyidagi imkoniyatlar bilan tanishishingiz mumkin:</p>
+        <div class="d-grid gap-2 d-md-flex justify-content-center">
+            <a class="btn btn-primary btn-lg" href="{% url 'products:product_list' %}" role="button">Mahsulotlarni ko'rish <i class="fas fa-box"></i></a>
+            <a class="btn btn-outline-secondary btn-lg" href="{% url 'admin:index' %}" role="button">Admin Paneli <i class="fas fa-tools"></i></a>
+        </div>
+    </div>
+</div>
+
+<div class="row row-cols-1 row-cols-md-3 g-4">
+    <div class="col">
+        <div class="card h-100 shadow-sm">
+            <div class="card-body text-center">
+                <i class="fas fa-chart-line fa-3x text-primary mb-3"></i>
+                <h5 class="card-title">Biznes Operatsiyalarini Optimallashtirish</h5>
+                <p class="card-text">Bulutli yechimlar orqali operatsion samaradorlikni oshiring va xarajatlarni kamaytiring.</p>
+                <a href="#" class="btn btn-sm btn-outline-primary">Batafsil</a>
+            </div>
+        </div>
+    </div>
+    <div class="col">
+        <div class="card h-100 shadow-sm">
+            <div class="card-body text-center">
+                <i class="fas fa-headset fa-3x text-success mb-3"></i>
+                <h5 class="card-title">Mijozlar Tajribasini Yaxshilash</h5>
+                <p class="card-text">Mijozlar bilan aloqalarni mustahkamlang va ularga tezkor, sifatli xizmat ko'rsating.</p>
+                <a href="#" class="btn btn-sm btn-outline-success">Batafsil</a>
+            </div>
+        </div>
+    </div>
+    <div class="col">
+        <div class="card h-100 shadow-sm">
+            <div class="card-body text-center">
+                <i class="fas fa-cloud fa-3x text-info mb-3"></i>
+                <h5 class="card-title">Miqyoslanuvchan Bulut Infratuzilmasi</h5>
+                <p class="card-text">Talabga qarab resurslarni kengaytiring va biznesingizni erkin rivojlantiring.</p>
+                <a href="#" class="btn btn-sm btn-outline-info">Batafsil</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

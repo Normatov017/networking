@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+
+{% block title %}Buyurtma Tafsilotlari - #{{ order.id }}{% endblock %}
+
+{% block content %}
+<div class="card shadow-sm">
+    <div class="card-header bg-info text-white">
+        <h3 class="mb-0">Buyurtma #{{ order.id }}</h3>
+    </div>
+    <div class="card-body">
+        <h5 class="card-title">Mijoz: 
+            {% if order.customer %}
+                <a href="{% url 'customers:customer_detail' order.customer.id %}">{{ order.customer.first_name }} {{ order.customer.last_name }}</a>
+            {% else %}
+                Mijozsiz
+            {% endif %}
+        </h5>
+        <p class="card-text"><strong>Buyurtma sanasi:</strong> {{ order.order_date|date:"d M Y H:i" }}</p>
+        <p class="card-text"><strong>Umumiy summa:</strong> ${{ order.total_amount|floatformat:2 }}</p>
+        <p class="card-text"><strong>Status:</strong> 
+            {% if order.status == 'Pending' %}
+                <span class="badge bg-warning text-dark">{{ order.status }}</span>
+            {% elif order.status == 'Processing' %}
+                <span class="badge bg-info">{{ order.status }}</span>
+            {% elif order.status == 'Shipped' %}
+                <span class="badge bg-primary">{{ order.status }}</span>
+            {% elif order.status == 'Delivered' %}
+                <span class="badge bg-success">{{ order.status }}</span>
+            {% else %}
+                <span class="badge bg-danger">{{ order.status }}</span>
+            {% endif %}
+        </p>
+        <p class="card-text"><strong>Izohlar:</strong> {{ order.notes|default_if_none:"-" }}</p>
+        <p class="card-text"><small class="text-muted">Yaratildi: {{ order.created_at|date:"d M Y H:i" }}</small></p>
+        <p class="card-text"><small class="text-muted">Oxirgi yangilanish: {{ order.updated_at|date:"d M Y H:i" }}</small></p>
+
+        <h5 class="mt-4">Buyurtma Elementlari:</h5>
+        {% if order_items %}
+            <div class="table-responsive">
+                <table class="table table-bordered table-sm">
+                    <thead>
+                        <tr>
+                            <th>Mahsulot</th>
+                            <th>Narx</th>
+                            <th>Miqdor</th>
+                            <th>Jami</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in order_items %}
+                        <tr>
+                            <td>
+                                {% if item.product %}
+                                    <a href="{% url 'products:product_detail' item.product.id %}">{{ item.product.name }}</a>
+                                {% else %}
+                                    <span class="text-danger">O'chirilgan Mahsulot</span>
+                                {% endif %}
+                            </td>
+                            <td>${{ item.price|floatformat:2 }}</td>
+                            <td>{{ item.quantity }}</td>
+                            <td>${{ item.get_total_price|floatformat:2 }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <p>Ushbu buyurtmada hech qanday element mavjud emas.</p>
+        {% endif %}
+
+        <a href="{% url 'orders:order_update' order.id %}" class="btn btn-warning mt-3"><i class="fas fa-edit"></i> Tahrirlash</a>
+        <a href="{% url 'orders:order_delete' order.id %}" class="btn btn-danger mt-3"><i class="fas fa-trash-alt"></i> O'chirish</a>
+        <a href="{% url 'orders:order_list' %}" class="btn btn-secondary mt-3"><i class="fas fa-arrow-left"></i> Ro'yxatga qaytish</a>
+    </div>
+</div>
+{% endblock %}

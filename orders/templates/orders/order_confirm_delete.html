@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+
+{% block title %}Buyurtmani O'chirish{% endblock %}
+
+{% block content %}
+<div class="card shadow-sm">
+    <div class="card-header bg-danger text-white">
+        <h3 class="mb-0">Buyurtmani O'chirish</h3>
+    </div>
+    <div class="card-body">
+        <p class="lead">Haqiqatan ham #<strong>{{ order.id }}</strong> raqamli buyurtmani o'chirmoqchimisiz (Mijoz: {{ order.customer.first_name }} {{ order.customer.last_name }})?</p>
+        <p class="text-danger">Bu amalni qaytarib bo'lmaydi va buyurtma elementlari ham o'chiriladi.</p>
+        <form method="post">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger mt-3"><i class="fas fa-trash-alt"></i> Ha, O'chirilsin</button>
+            <a href="{% url 'orders:order_detail' order.id %}" class="btn btn-secondary mt-3"><i class="fas fa-ban"></i> Bekor qilish</a>
+        </form>
+    </div>
+</div>
+{% endblock %}

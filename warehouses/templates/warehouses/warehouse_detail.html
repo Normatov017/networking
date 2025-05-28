@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+
+{% block title %}Ombor Tafsilotlari - {{ warehouse.name }}{% endblock %}
+
+{% block content %}
+<div class="card shadow-sm">
+    <div class="card-header bg-info text-white">
+        <h3 class="mb-0">Ombor Tafsilotlari: {{ warehouse.name }}</h3>
+    </div>
+    <div class="card-body">
+        <p class="card-text"><strong>Nomi:</strong> {{ warehouse.name }}</p>
+        <p class="card-text"><strong>Manzil:</strong> {{ warehouse.location|default_if_none:"-" }}</p>
+        <p class="card-text"><strong>Sig'imi (kv.m):</strong> {{ warehouse.capacity_sqm|default_if_none:"-" }}</p>
+        <p class="card-text"><strong>Mas'ul shaxs:</strong> {{ warehouse.contact_person|default_if_none:"-" }}</p>
+        <p class="card-text"><strong>Telefon raqami:</strong> {{ warehouse.phone_number|default_if_none:"-" }}</p>
+        <p class="card-text"><strong>Email:</strong> {{ warehouse.email|default_if_none:"-" }}</p>
+        <p class="card-text"><strong>Faol:</strong> 
+            {% if warehouse.is_active %}
+                <span class="badge bg-success">Ha</span>
+            {% else %}
+                <span class="badge bg-danger">Yo'q</span>
+            {% endif %}
+        </p>
+        <p class="card-text"><small class="text-muted">Yaratildi: {{ warehouse.created_at|date:"d M Y H:i" }}</small></p>
+        <p class="card-text"><small class="text-muted">Oxirgi yangilanish: {{ warehouse.updated_at|date:"d M Y H:i" }}</small></p>
+
+        <h5 class="mt-4">Inventar Elementlari:</h5>
+        {% if inventory_items %}
+            <div class="table-responsive">
+                <table class="table table-bordered table-sm">
+                    <thead>
+                        <tr>
+                            <th>Mahsulot</th>
+                            <th>Miqdor</th>
+                            <th>Oxirgi yangilanish</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in inventory_items %}
+                        <tr>
+                            <td>
+                                {% if item.product %}
+                                    <a href="{% url 'products:product_detail' item.product.id %}">{{ item.product.name }}</a>
+                                {% else %}
+                                    <span class="text-danger">O'chirilgan Mahsulot</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ item.quantity }}</td>
+                            <td>{{ item.last_updated|date:"d M Y H:i" }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <p>Ushbu omborda hech qanday inventar elementi mavjud emas.</p>
+        {% endif %}
+
+        <a href="{% url 'warehouses:warehouse_update' warehouse.id %}" class="btn btn-warning mt-3"><i class="fas fa-edit"></i> Tahrirlash</a>
+        <a href="{% url 'warehouses:warehouse_delete' warehouse.id %}" class="btn btn-danger mt-3"><i class="fas fa-trash-alt"></i> O'chirish</a>
+        <a href="{% url 'warehouses:warehouse_list' %}" class="btn btn-secondary mt-3"><i class="fas fa-arrow-left"></i> Ro'yxatga qaytish</a>
+    </div>
+</div>
+{% endblock %}

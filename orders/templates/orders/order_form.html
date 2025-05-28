@@ -1,0 +1,167 @@
+{% extends 'base.html' %}
+{% load static %} {# static fayllarni yuklash uchun #}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block extra_head %}
+<style>
+    .formset-row {
+        border: 1px solid #e0e0e0;
+        padding: 15px;
+        margin-bottom: 15px;
+        border-radius: 5px;
+        background-color: #f9f9f9;
+    }
+    .formset-row .form-check {
+        margin-top: 10px;
+    }
+    .delete-row-btn {
+        margin-top: 10px;
+        float: right;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="card shadow-sm">
+    <div class="card-header bg-primary text-white">
+        <h3 class="mb-0">{{ title }}</h3>
+    </div>
+    <div class="card-body">
+        <form method="post" id="order-form">
+            {% csrf_token %}
+
+            <h4>Buyurtma ma'lumotlari</h4>
+            {% for field in form %}
+                <div class="mb-3">
+                    <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+                    {{ field }}
+                    {% if field.help_text %}
+                        <div class="form-text text-muted">{{ field.help_text }}</div>
+                    {% endif %}
+                    {% for error in field.errors %}
+                        <div class="text-danger small">{{ error }}</div>
+                    {% endfor %}
+                </div>
+            {% endfor %}
+
+            <h4 class="mt-4">Buyurtma Elementlari</h4>
+            <div id="formset-container">
+                {{ formset.management_form }} {# Formset'ning boshqaruv formasi #}
+                {% for form in formset %}
+                    <div class="formset-row" id="formset-row-{{ forloop.counter0 }}">
+                        <p class="h6">Mahsulot #{{ forloop.counter }}</p>
+                        {% for field in form %}
+                            <div class="mb-3">
+                                {% if field.name == 'id' %}
+                                    {{ field }} {# Yashirin id maydoni (agar mavjud bo'lsa) #}
+                                {% elif field.name == 'DELETE' %}
+                                    <div class="form-check">
+                                        {{ field }}
+                                        <label class="form-check-label" for="{{ field.id_for_label }}">O'chirish</label>
+                                    </div>
+                                {% else %}
+                                    <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+                                    {{ field }}
+                                    {% if field.help_text %}
+                                        <div class="form-text text-muted">{{ field.help_text }}</div>
+                                    {% endif %}
+                                    {% for error in field.errors %}
+                                        <div class="text-danger small">{{ error }}</div>
+                                    {% endfor %}
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+                        {% if formset.can_delete %}
+                            {% if form.instance.pk %} {# Agar mavjud item bo'lsa o'chirish tugmasini ko'rsat #}
+                                <button type="button" class="btn btn-outline-danger btn-sm delete-row-btn" data-form-id="formset-row-{{ forloop.counter0 }}">
+                                    <i class="fas fa-times"></i> O'chirish
+                                </button>
+                            {% endif %}
+                        {% endif %}
+                        <hr>
+                    </div>
+                {% endfor %}
+            </div>
+            <button type="button" id="add-item-btn" class="btn btn-info btn-sm mb-3">
+                <i class="fas fa-plus"></i> Element Qo'shish
+            </button>
+
+            <button type="submit" class="btn btn-success mt-3">Saqlash</button>
+            <a href="{% url 'orders:order_list' %}" class="btn btn-secondary mt-3">Bekor qilish</a>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const addItemBtn = document.getElementById('add-item-btn');
+        const formsetContainer = document.getElementById('formset-container');
+        const totalFormsInput = document.querySelector('input[name="items-TOTAL_FORMS"]');
+        
+        // Mahsulotlar ro'yxatini JSON dan olamiz
+        const productsData = JSON.parse(document.getElementById('products-data').textContent);
+
+        addItemBtn.addEventListener('click', function() {
+            const currentForms = parseInt(totalFormsInput.value);
+            const newFormIndex = currentForms;
+
+            // Yangi form-row elementini yaratamiz
+            const newFormRow = document.createElement('div');
+            newFormRow.className = 'formset-row';
+            newFormRow.id = `formset-row-${newFormIndex}`;
+            newFormRow.innerHTML = `
+                <p class="h6">Mahsulot #${newFormIndex + 1}</p>
+                <div class="mb-3">
+                    <label for="id_items-${newFormIndex}-product" class="form-label">Mahsulot</label>
+                    <select name="items-${newFormIndex}-product" class="form-select product-select" id="id_items-${newFormIndex}-product">
+                        <option value="">--- Mahsulotni tanlang ---</option>
+                        ${productsData.map(product => `<option value="${product.id}">${product.name} ($${product.price})</option>`).join('')}
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label for="id_items-${newFormIndex}-quantity" class="form-label">Miqdor</label>
+                    <input type="number" name="items-${newFormIndex}-quantity" value="1" min="1" class="form-control item-quantity" id="id_items-${newFormIndex}-quantity">
+                </div>
+                <div class="form-check">
+                    <input type="checkbox" name="items-${newFormIndex}-DELETE" id="id_items-${newFormIndex}-DELETE" class="form-check-input">
+                    <label class="form-check-label" for="id_items-${newFormIndex}-DELETE">O'chirish</label>
+                </div>
+                <button type="button" class="btn btn-outline-danger btn-sm delete-row-btn" data-form-id="formset-row-${newFormIndex}">
+                    <i class="fas fa-times"></i> O'chirish
+                </button>
+                <hr>
+            `;
+
+            formsetContainer.appendChild(newFormRow);
+            totalFormsInput.value = currentForms + 1;
+            addDeleteListener(newFormRow); // Yangi qo'shilgan qatorga listener qo'shamiz
+        });
+
+        // O'chirish tugmalari uchun listener
+        function addDeleteListener(row) {
+            const deleteButton = row.querySelector('.delete-row-btn');
+            if (deleteButton) {
+                deleteButton.addEventListener('click', function() {
+                    const formRow = document.getElementById(this.dataset.formId);
+                    if (formRow) {
+                        const deleteCheckbox = formRow.querySelector('input[type="checkbox"][name$="-DELETE"]');
+                        if (deleteCheckbox) {
+                            deleteCheckbox.checked = true; // O'chirish checkboxini belgilash
+                            formRow.style.display = 'none'; // Formalarni yashirish
+                            // totalFormsInput.value = parseInt(totalFormsInput.value) - 1; // Bu qatordan ehtiyot bo'ling, TOTAL_FORMS kamaymasligi kerak
+                        }
+                    }
+                });
+            }
+        }
+
+        // Mavjud formalar uchun delete listenerlarini qo'shish
+        document.querySelectorAll('.formset-row').forEach(row => {
+            addDeleteListener(row);
+        });
+    });
+</script>
+{% endblock %}

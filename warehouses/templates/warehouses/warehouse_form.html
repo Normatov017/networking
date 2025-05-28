@@ -1,0 +1,205 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load crispy_forms_tags %} {# Agar crispy forms ishlatayotgan bo'lsangiz #}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block extra_head %}
+<style>
+    .formset-row {
+        border: 1px solid #e0e0e0;
+        padding: 15px;
+        margin-bottom: 15px;
+        border-radius: 5px;
+        background-color: #f9f9f9;
+        position: relative; /* Tugma joylashuvi uchun */
+    }
+    .formset-row .form-check {
+        margin-top: 10px;
+    }
+    .delete-row-btn {
+        position: absolute;
+        top: 10px;
+        right: 15px;
+        z-index: 10; /* Boshqa elementlar ustida bo'lishi uchun */
+    }
+    hr.formset-divider {
+        border-top: 1px dashed #ccc;
+        margin-top: 20px;
+        margin-bottom: 20px;
+    }
+    .card-header.bg-primary {
+        background-color: #007bff !important; /* Bootstrap primary color */
+    }
+    .btn-info {
+        background-color: #17a2b8 !important; /* Bootstrap info color */
+        border-color: #17a2b8 !important;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-10 offset-md-1">
+        <div class="card shadow-sm">
+            <div class="card-header bg-primary text-white">
+                <h3 class="mb-0">{{ title }}</h3>
+            </div>
+            <div class="card-body">
+                <form method="post" id="warehouse-form">
+                    {% csrf_token %}
+
+                    <h4>Ombor ma'lumotlari</h4>
+                    {# Ombor asosiy formasi #}
+                    {% for field in form %}
+                        <div class="mb-3">
+                            {% if field.field.widget.input_type == 'checkbox' %}
+                                <div class="form-check">
+                                    {{ field }}
+                                    <label class="form-check-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                                </div>
+                            {% else %}
+                                <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+                                {{ field }}
+                            {% endif %}
+                            {% if field.help_text %}
+                                <div class="form-text text-muted">{{ field.help_text }}</div>
+                            {% endif %}
+                            {% for error in field.errors %}
+                                <div class="text-danger small">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                    {% endfor %}
+
+                    <h4 class="mt-4">Inventar elementlari</h4>
+                    <div id="inventory-formset-container">
+                        {{ formset.management_form }} {# Formset'ning boshqaruv formasi #}
+                        {% for item_form in formset %} {# form emas, item_form deb nomladik #}
+                            <div class="formset-row" id="formset-row-{{ forloop.counter0 }}">
+                                <p class="h6">Inventar elementi #{{ forloop.counter }}</p>
+                                {% for field in item_form %}
+                                    <div class="mb-3">
+                                        {% if field.name == 'id' %}
+                                            {{ field }} {# Yashirin id maydoni (agar mavjud bo'lsa) #}
+                                        {% elif field.name == 'DELETE' %}
+                                            <div class="form-check">
+                                                {{ field }}
+                                                <label class="form-check-label" for="{{ field.id_for_label }}">O'chirish</label>
+                                            </div>
+                                        {% else %}
+                                            <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+                                            {{ field }}
+                                            {% if field.help_text %}
+                                                <div class="form-text text-muted">{{ field.help_text }}</div>
+                                            {% endif %}
+                                            {% for error in field.errors %}
+                                                <div class="text-danger small">{{ error }}</div>
+                                            {% endfor %}
+                                        {% endif %}
+                                    </div>
+                                {% endfor %}
+                                {% if item_form.instance.pk %} {# Agar mavjud item bo'lsa o'chirish tugmasini ko'rsat #}
+                                    <button type="button" class="btn btn-outline-danger btn-sm delete-row-btn" data-form-id="formset-row-{{ forloop.counter0 }}">
+                                        <i class="fas fa-times"></i> O'chirish
+                                    </button>
+                                {% endif %}
+                                <hr class="formset-divider">
+                            </div>
+                        {% endfor %}
+                    </div>
+                    <button type="button" id="add-inventory-item-btn" class="btn btn-info btn-sm mb-3">
+                        <i class="fas fa-plus"></i> Inventar Elementi Qo'shish
+                    </button>
+
+                    <hr class="my-4">
+
+                    <button type="submit" class="btn btn-success mt-3">Saqlash</button>
+                    <a href="{% url 'warehouses:warehouse_list' %}" class="btn btn-secondary mt-3 ms-2">Bekor qilish</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{# products_json data'sini JavaScriptga o'tkazish uchun #}
+{# Eslatma: 'products-data' bu <script> tegining ID'si, 'productsData' esa JS ichida o'zgaruvchi nomi #}
+<script id="products-data" type="application/json">
+    {{ products_json|json_script:"productsData" }}
+</script>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const addInventoryItemBtn = document.getElementById('add-inventory-item-btn');
+        const inventoryFormsetContainer = document.getElementById('inventory-formset-container');
+        const totalFormsInput = document.querySelector('input[name="inventory_items-TOTAL_FORMS"]');
+
+        // productsData o'zgaruvchisini global miqyosda e'lon qiling, yoki shu script ichida oling
+        const productsData = JSON.parse(document.getElementById('products-data').textContent);
+
+        // FORM template yaratish. empty_form ni o'zimiz yaratgan DOM elementlariga o'tkazamiz
+        // Bu funksiya yangi form elementini yaratib, uni to'g'ri indekslar bilan to'ldiradi
+        const createNewFormRow = (index) => {
+            const newFormRow = document.createElement('div');
+            newFormRow.className = 'formset-row';
+            newFormRow.id = `formset-row-${index}`;
+            newFormRow.innerHTML = `
+                <p class="h6">Inventar elementi #${index + 1}</p>
+                <div class="mb-3">
+                    <label for="id_inventory_items-${index}-product" class="form-label">Mahsulot</label>
+                    <select name="inventory_items-${index}-product" class="form-select inventory-product-select" id="id_inventory_items-${index}-product">
+                        <option value="">--- Mahsulotni tanlang ---</option>
+                        ${productsData.map(product => `<option value="${product.id}">${product.name}</option>`).join('')}
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label for="id_inventory_items-${index}-quantity" class="form-label">Miqdor</label>
+                    <input type="number" name="inventory_items-${index}-quantity" value="0" min="0" class="form-control inventory-quantity" id="id_inventory_items-${index}-quantity">
+                </div>
+                <div class="form-check">
+                    <input type="checkbox" name="inventory_items-${index}-DELETE" id="id_inventory_items-${index}-DELETE" class="form-check-input">
+                    <label class="form-check-label" for="id_inventory_items-${index}-DELETE">O'chirish</label>
+                </div>
+                <button type="button" class="btn btn-outline-danger btn-sm delete-row-btn" data-form-id="formset-row-${index}">
+                    <i class="fas fa-times"></i> O'chirish
+                </button>
+                <hr class="formset-divider">
+            `;
+            return newFormRow;
+        };
+
+        addInventoryItemBtn.addEventListener('click', function() {
+            const currentForms = parseInt(totalFormsInput.value);
+            const newFormIndex = currentForms;
+
+            const newFormRow = createNewFormRow(newFormIndex);
+            inventoryFormsetContainer.appendChild(newFormRow);
+            totalFormsInput.value = newFormIndex + 1; // TOTAL_FORMS ni yangilash
+            addDeleteListener(newFormRow); // Yangi qo'shilgan qatorga listener qo'shamiz
+        });
+
+        // O'chirish tugmalari uchun listener funksiyasi
+        function addDeleteListener(row) {
+            const deleteButton = row.querySelector('.delete-row-btn');
+            if (deleteButton) {
+                deleteButton.addEventListener('click', function() {
+                    const formRow = document.getElementById(this.dataset.formId);
+                    if (formRow) {
+                        const deleteCheckbox = formRow.querySelector('input[type="checkbox"][name$="-DELETE"]');
+                        if (deleteCheckbox) {
+                            deleteCheckbox.checked = true; // O'chirish checkboxini belgilash
+                            formRow.style.display = 'none'; // Formalarni yashirish
+                        }
+                    }
+                });
+            }
+        }
+
+        // Mavjud formalar uchun delete listenerlarini qo'shish (sahifa yuklanganda)
+        document.querySelectorAll('.formset-row').forEach(row => {
+            addDeleteListener(row);
+        });
+    });
+</script>
+{% endblock %}

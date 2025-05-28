@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+
+{% block title %}Mahsulot Tafsilotlari - {{ product.name }}{% endblock %}
+
+{% block content %}
+<div class="card shadow-sm">
+    <div class="card-header bg-info text-white">
+        <h3 class="mb-0">{{ product.name }}</h3>
+    </div>
+    <div class="card-body">
+        <h5 class="card-title">SKU: <span class="fw-normal">{{ product.sku }}</span></h5>
+        <p class="card-text"><strong>Narxi:</strong> ${{ product.price|floatformat:2 }}</p>
+        <p class="card-text"><strong>Ombordagi miqdor:</strong> {{ product.stock_quantity }}</p>
+        <p class="card-text"><strong>Tavsifi:</strong> {{ product.description|default_if_none:"Tavsif mavjud emas." }}</p>
+        <p class="card-text"><strong>Status:</strong> 
+            {% if product.is_active %}
+                <span class="badge bg-success">Faol</span>
+            {% else %}
+                <span class="badge bg-danger">Faol emas</span>
+            {% endif %}
+        </p>
+        <p class="card-text"><small class="text-muted">Yaratildi: {{ product.created_at|date:"d M Y H:i" }}</small></p>
+        <p class="card-text"><small class="text-muted">Oxirgi yangilanish: {{ product.updated_at|date:"d M Y H:i" }}</small></p>
+
+        <a href="{% url 'products:product_update' product.id %}" class="btn btn-warning mt-3"><i class="fas fa-edit"></i> Tahrirlash</a>
+        <a href="{% url 'products:product_delete' product.id %}" class="btn btn-danger mt-3"><i class="fas fa-trash-alt"></i> O'chirish</a>
+        <a href="{% url 'products:product_list' %}" class="btn btn-secondary mt-3"><i class="fas fa-arrow-left"></i> Ro'yxatga qaytish</a>
+    </div>
+</div>
+{% endblock %}
