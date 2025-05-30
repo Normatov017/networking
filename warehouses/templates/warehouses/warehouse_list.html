@@ -1,0 +1,46 @@
+{% extends 'base.html' %} 
+{% load static %} 
+
+{% block title %}Omborlar Ro'yxati{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Omborlar Ro'yxati</h2>
+    <a href="{% url 'warehouse_create' %}" class="btn btn-primary mb-3">Yangi ombor qo'shish</a>
+
+    {% if warehouses %}
+    <table class="table table-striped table-hover">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Nomi</th>
+                <th>Manzil</th>
+                <th>Bog'lanish Shaxsi</th>
+                <th>Telefon</th>
+                <th>Amallar</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for warehouse in warehouses %}
+            <tr>
+                <td>{{ warehouse.id }}</td>
+                <td>{{ warehouse.name }}</td>
+                <td>{{ warehouse.address }}</td>
+                <td>{{ warehouse.contact_person }}</td>
+                <td>{{ warehouse.phone_number }}</td>
+                <td>
+                    <a href="{% url 'warehouse_detail' warehouse.id %}" class="btn btn-info btn-sm">Ko'rish</a>
+                    <a href="{% url 'warehouse_update' warehouse.id %}" class="btn btn-warning btn-sm">Tahrirlash</a>
+                    <a href="{% url 'warehouse_delete' warehouse.id %}" class="btn btn-danger btn-sm">O'chirish</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="alert alert-info" role="alert">
+        Hozircha hech qanday ombor mavjud emas.
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
