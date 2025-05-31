@@ -11,6 +11,7 @@ urlpatterns = [
     path('', views.home_view, name='home'), # Bosh sahifa URL
     path('dashboard/', views.dashboard_view, name='dashboard'), # Statistika paneli URL
 
+    path('accounts/profile/', lambda request: redirect('dashboard'), name='accounts_profile_redirect'),
     # Ilova URL'lari
     path('products/', include('products.urls')),
     path('customers/', include('customers.urls')),

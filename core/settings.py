@@ -61,6 +61,12 @@ TEMPLATES = [
         },
     },
 ]
+
+LOGIN_REDIRECT_URL = '/dashboard/'
+from django.urls import reverse_lazy
+
+LOGIN_REDIRECT_URL = reverse_lazy('dashboard')
+
 WSGI_APPLICATION = 'core.wsgi.application'
 
 
