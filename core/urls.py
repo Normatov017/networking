@@ -1,6 +1,7 @@
 # core/urls.py
 from django.contrib import admin
 from django.urls import path, include
+from django.shortcuts import redirect
 from django.contrib.auth import views as auth_views
 from . import views # views.py dan home_view, dashboard_view va API views ni import qilamiz
 from django.conf import settings
