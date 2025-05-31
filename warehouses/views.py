@@ -58,7 +58,7 @@ def warehouse_create(request):
         'page_title': 'Yangi Ombor' # Navigatsiya uchun
         # 'products_json': list(products) # Hozircha bu yerda Product narxi kerak emas
     }
-    return render(request, 'warehouses/warehouse_form.html', context)
+    return render(request, 'warehouses/templates/warehouse_form.html', context)
 
 @login_required
 def warehouse_detail(request, pk):
